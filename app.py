@@ -1,11 +1,11 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template_string
 import pickle
 import numpy as np
 import os
 
 app = Flask(__name__)
 
-# Updated to match your exact file name
+# Model file name
 MODEL_PATH = 'decision_tree_model.pkl'
 
 # Load the trained Decision Tree model safely
@@ -19,10 +19,195 @@ if os.path.exists(MODEL_PATH):
 else:
     print(f"File {MODEL_PATH} not found. Make sure it is in the same directory.")
 
+# Embedded Modern HTML Interface
+HTML_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Predictor Interface</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg), #1e1b4b);
+            color: var(--text);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+        .container {
+            background-color: var(--surface);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 800px;
+            animation: slideUp 0.6s ease-out forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        @keyframes slideUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h1 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 2rem;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            transition: color 0.3s;
+        }
+        .input-group:focus-within label {
+            color: var(--primary);
+        }
+        input {
+            padding: 0.75rem;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: white;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+        }
+        button {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(168, 85, 247, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        #result {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .show-result {
+            opacity: 1 !important;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #4ade80;
+        }
+        .error-result {
+            opacity: 1 !important;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Predictive Model Interface</h1>
+        <form id="predictionForm">
+            <div class="form-grid">
+                <div class="input-group"><label>Age</label><input type="number" name="age" required value="0" step="any"></div>
+                <div class="input-group"><label>Gender (0/1)</label><input type="number" name="gender" required value="0" step="any"></div>
+                <div class="input-group"><label>Daily Screen Time (hrs)</label><input type="number" name="daily_screen_time_hours" required value="0" step="any"></div>
+                <div class="input-group"><label>Social Media (hrs)</label><input type="number" name="social_media_hours" required value="0" step="any"></div>
+                <div class="input-group"><label>Gaming (hrs)</label><input type="number" name="gaming_hours" required value="0" step="any"></div>
+                <div class="input-group"><label>Work/Study (hrs)</label><input type="number" name="work_study_hours" required value="0" step="any"></div>
+                <div class="input-group"><label>Sleep (hrs)</label><input type="number" name="sleep_hours" required value="0" step="any"></div>
+                <div class="input-group"><label>Notifications per Day</label><input type="number" name="notifications_per_day" required value="0" step="any"></div>
+                <div class="input-group"><label>App Opens per Day</label><input type="number" name="app_opens_per_day" required value="0" step="any"></div>
+                <div class="input-group"><label>Weekend Screen Time</label><input type="number" name="weekend_screen_time" required value="0" step="any"></div>
+                <div class="input-group"><label>Stress Level</label><input type="number" name="stress_level" required value="0" step="any"></div>
+                <div class="input-group"><label>Academic/Work Impact</label><input type="number" name="academic_work_impact" required value="0" step="any"></div>
+                <div class="input-group"><label>Addiction Level</label><input type="number" name="addiction_level" required value="0" step="any"></div>
+            </div>
+            <button type="submit">Predict Now</button>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = '';
+            resultDiv.innerText = 'Calculating...';
+            resultDiv.style.opacity = 1;
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerText = `Predicted Result: ${result.prediction}`;
+                    resultDiv.className = 'show-result';
+                } else {
+                    resultDiv.innerText = `Error: ${result.error}`;
+                    resultDiv.className = 'error-result';
+                }
+            } catch (error) {
+                resultDiv.innerText = 'Failed to connect to the server.';
+                resultDiv.className = 'error-result';
+            }
+        });
+    </script>
+</body>
+</html>
+"""
+
 @app.route('/')
 def home():
-    # This will load the modern interface from the templates folder
-    return render_template('index.html')
+    # Renders the HTML directly from the string above
+    return render_template_string(HTML_TEMPLATE)
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -32,7 +217,7 @@ def predict():
     try:
         data = request.get_json()
         
-        # Extract features
+        # Extract features ensuring exact order
         features = [
             float(data.get('age', 0)),
             float(data.get('gender', 0)),
