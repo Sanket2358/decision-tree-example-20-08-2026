@@ -1,28 +1,38 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import pickle
 import numpy as np
+import os
 
 app = Flask(__name__)
 
-# Load the trained Decision Tree model
-# Make sure decision_tree.pkl is in the same directory as this file
-try:
-    with open('decision_tree.pkl', 'rb') as file:
-        model = pickle.load(file)
-except Exception as e:
-    print(f"Error loading the model: {e}")
+# Updated to match your exact file name
+MODEL_PATH = 'decision_tree_model.pkl'
+
+# Load the trained Decision Tree model safely
+model = None
+if os.path.exists(MODEL_PATH):
+    try:
+        with open(MODEL_PATH, 'rb') as file:
+            model = pickle.load(file)
+    except Exception as e:
+        print(f"Error loading the model: {e}")
+else:
+    print(f"File {MODEL_PATH} not found. Make sure it is in the same directory.")
 
 @app.route('/')
 def home():
-    return jsonify({"message": "Decision Tree Model API is running!"})
+    # This will load the modern interface from the templates folder
+    return render_template('index.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
+    if not model:
+        return jsonify({'error': 'Model not loaded on the server.'}), 500
+        
     try:
-        # Get JSON data from the request
         data = request.get_json()
         
-        # Extract the 13 features in the exact order the model expects
+        # Extract features
         features = [
             float(data.get('age', 0)),
             float(data.get('gender', 0)),
@@ -39,18 +49,13 @@ def predict():
             float(data.get('addiction_level', 0))
         ]
         
-        # Convert to a 2D numpy array: shape (1, 13)
         features_array = np.array([features])
-        
-        # Make a prediction
         prediction = model.predict(features_array)
         
-        # Return the result (converted to standard Python int)
         return jsonify({'prediction': int(prediction[0])})
         
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
 if __name__ == '__main__':
-    # Run the app in debug mode if executed directly
     app.run(host='0.0.0.0', port=5000, debug=True)
