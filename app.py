@@ -19,7 +19,7 @@ if os.path.exists(MODEL_PATH):
 else:
     print(f"File {MODEL_PATH} not found. Make sure it is in the same directory.")
 
-# Embedded Modern HTML Interface
+# Embedded Modern HTML Interface with Dropdowns, Placeholders, and Animations
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
@@ -87,7 +87,7 @@ HTML_TEMPLATE = """
         .input-group:focus-within label {
             color: var(--primary);
         }
-        input {
+        input, select {
             padding: 0.75rem;
             background: #0f172a;
             border: 1px solid #334155;
@@ -95,10 +95,16 @@ HTML_TEMPLATE = """
             color: white;
             outline: none;
             transition: all 0.3s ease;
+            font-family: inherit;
         }
-        input:focus {
+        input:focus, select:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+        }
+        /* Style the select dropdown options */
+        option {
+            background: #0f172a;
+            color: white;
         }
         button {
             width: 100%;
@@ -129,11 +135,32 @@ HTML_TEMPLATE = """
             opacity: 0;
             transition: opacity 0.4s ease;
         }
-        .show-result {
+        
+        /* Prediction Effects */
+        @keyframes pulseSuccess {
+            0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
+            70% { box-shadow: 0 0 15px 10px rgba(74, 222, 128, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+        @keyframes shakeWarning {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        
+        .result-low {
             opacity: 1 !important;
             background: rgba(34, 197, 94, 0.1);
             border: 1px solid rgba(34, 197, 94, 0.3);
             color: #4ade80;
+            animation: pulseSuccess 2s infinite;
+        }
+        .result-high {
+            opacity: 1 !important;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+            animation: shakeWarning 0.5s ease-in-out;
         }
         .error-result {
             opacity: 1 !important;
@@ -148,19 +175,63 @@ HTML_TEMPLATE = """
         <h1>Predictive Model Interface</h1>
         <form id="predictionForm">
             <div class="form-grid">
-                <div class="input-group"><label>Age</label><input type="number" name="age" required value="0" step="any"></div>
-                <div class="input-group"><label>Gender (0/1)</label><input type="number" name="gender" required value="0" step="any"></div>
-                <div class="input-group"><label>Daily Screen Time (hrs)</label><input type="number" name="daily_screen_time_hours" required value="0" step="any"></div>
-                <div class="input-group"><label>Social Media (hrs)</label><input type="number" name="social_media_hours" required value="0" step="any"></div>
-                <div class="input-group"><label>Gaming (hrs)</label><input type="number" name="gaming_hours" required value="0" step="any"></div>
-                <div class="input-group"><label>Work/Study (hrs)</label><input type="number" name="work_study_hours" required value="0" step="any"></div>
-                <div class="input-group"><label>Sleep (hrs)</label><input type="number" name="sleep_hours" required value="0" step="any"></div>
-                <div class="input-group"><label>Notifications per Day</label><input type="number" name="notifications_per_day" required value="0" step="any"></div>
-                <div class="input-group"><label>App Opens per Day</label><input type="number" name="app_opens_per_day" required value="0" step="any"></div>
-                <div class="input-group"><label>Weekend Screen Time</label><input type="number" name="weekend_screen_time" required value="0" step="any"></div>
-                <div class="input-group"><label>Stress Level</label><input type="number" name="stress_level" required value="0" step="any"></div>
-                <div class="input-group"><label>Academic/Work Impact</label><input type="number" name="academic_work_impact" required value="0" step="any"></div>
-                <div class="input-group"><label>Addiction Level</label><input type="number" name="addiction_level" required value="0" step="any"></div>
+                <!-- Dropdowns & Placeholders added -->
+                <div class="input-group">
+                    <label>Age</label>
+                    <input type="number" name="age" required placeholder="e.g., 18" step="any">
+                </div>
+                <div class="input-group">
+                    <label>Gender</label>
+                    <select name="gender" required>
+                        <option value="" disabled selected>Select Gender</option>
+                        <option value="1">Male</option>
+                        <option value="0">Female</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Daily Screen Time (hrs)</label>
+                    <input type="number" name="daily_screen_time_hours" required placeholder="e.g., 5" step="any">
+                </div>
+                <div class="input-group">
+                    <label>Social Media (hrs)</label>
+                    <input type="number" name="social_media_hours" required placeholder="e.g., 2" step="any">
+                </div>
+                <div class="input-group">
+                    <label>Gaming (hrs)</label>
+                    <input type="number" name="gaming_hours" required placeholder="e.g., 1" step="any">
+                </div>
+                <div class="input-group">
+                    <label>Work/Study (hrs)</label>
+                    <input type="number" name="work_study_hours" required placeholder="e.g., 8" step="any">
+                </div>
+                <div class="input-group">
+                    <label>Sleep (hrs)</label>
+                    <input type="number" name="sleep_hours" required placeholder="e.g., 7" step="any">
+                </div>
+                <div class="input-group">
+                    <label>Notifications per Day</label>
+                    <input type="number" name="notifications_per_day" required placeholder="e.g., 50" step="any">
+                </div>
+                <div class="input-group">
+                    <label>App Opens per Day</label>
+                    <input type="number" name="app_opens_per_day" required placeholder="e.g., 30" step="any">
+                </div>
+                <div class="input-group">
+                    <label>Weekend Screen Time (hrs)</label>
+                    <input type="number" name="weekend_screen_time" required placeholder="e.g., 6" step="any">
+                </div>
+                <div class="input-group">
+                    <label>Stress Level (0-10)</label>
+                    <input type="number" name="stress_level" required placeholder="e.g., 4" min="0" max="10" step="any">
+                </div>
+                <div class="input-group">
+                    <label>Academic/Work Impact (0-10)</label>
+                    <input type="number" name="academic_work_impact" required placeholder="e.g., 3" min="0" max="10" step="any">
+                </div>
+                <div class="input-group">
+                    <label>Addiction Level (0-10)</label>
+                    <input type="number" name="addiction_level" required placeholder="e.g., 2" min="0" max="10" step="any">
+                </div>
             </div>
             <button type="submit">Predict Now</button>
         </form>
@@ -188,8 +259,14 @@ HTML_TEMPLATE = """
                 const result = await response.json();
                 
                 if (response.ok) {
-                    resultDiv.innerText = `Predicted Result: ${result.prediction}`;
-                    resultDiv.className = 'show-result';
+                    // Map numeric output to actual text and apply dynamic classes
+                    if (result.prediction === 0) {
+                        resultDiv.innerText = 'Prediction: Normal / Low Risk';
+                        resultDiv.className = 'result-low';
+                    } else {
+                        resultDiv.innerText = 'Prediction: High Risk / Attention Needed';
+                        resultDiv.className = 'result-high';
+                    }
                 } else {
                     resultDiv.innerText = `Error: ${result.error}`;
                     resultDiv.className = 'error-result';
@@ -206,7 +283,6 @@ HTML_TEMPLATE = """
 
 @app.route('/')
 def home():
-    # Renders the HTML directly from the string above
     return render_template_string(HTML_TEMPLATE)
 
 @app.route('/predict', methods=['POST'])
