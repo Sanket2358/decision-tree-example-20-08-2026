@@ -259,12 +259,12 @@ HTML_TEMPLATE = """
                 const result = await response.json();
                 
                 if (response.ok) {
-                    // Map numeric output to actual text and apply dynamic classes
+                    // Output updated to "Not Addicted" and "Addicted"
                     if (result.prediction === 0) {
-                        resultDiv.innerText = 'Prediction: Normal / Low Risk';
+                        resultDiv.innerText = 'Prediction: Not Addicted';
                         resultDiv.className = 'result-low';
                     } else {
-                        resultDiv.innerText = 'Prediction: High Risk / Attention Needed';
+                        resultDiv.innerText = 'Prediction: Addicted';
                         resultDiv.className = 'result-high';
                     }
                 } else {
